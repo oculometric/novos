@@ -86,6 +86,7 @@ build: $(BL_FILES_OUT) $(CC_FILES_OUT) $(AS_FILES_OUT) $(EMBED_FILES_OUT)
 	@stat -c%s $(BOOT_OUT)
 
 emulate:
+	@mkdir -p log
 	qemu-system-x86_64 -drive file=$(BOOT_OUT),format=raw,index=0,media=disk -m 32M -monitor stdio -serial file:log/output.log
 
 disassemble:
@@ -96,3 +97,21 @@ dump:
 
 clean:
 	@rm -fr $(BIN)
+
+docker:
+	@echo "Creating build context..."
+	@# "Why not just use a `.dockerignore` instead of this?
+	@# 	That would lead to local files (copies of binutils/gcc/gnu-efi sources, build artifacts, etc.)
+	@#	  being copied into the build context, which wastes disk space in the Docker cache
+	@#	  and leads to more cache invalidation.
+	@#	By copying only required files into an otherwise-empty build directory, we have greater control
+	@#	  over what gets handed over to the Docker build system.
+	@mkdir -p .docker-build
+	@rm -fr .docker-build/*
+	@# Add any other required materials to this line
+	@cp -r linker.ld Makefile src res .docker-build/
+	@echo "Building..."
+	@cd .docker-build && docker build -f ../Dockerfile . -o ../bin
+	@echo "Cleaning up..."
+	@rm -r .docker-build
+	@echo -e "Done!\nOutput files have been written to ./bin/"

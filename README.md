@@ -56,6 +56,22 @@ the other thing i do want to do is try and make *some* note about anything parti
 
 following the principle above, i'm trying to keep the build environment simple. everything that builds the project is in the Makefile, and its all just there so you can read it and actually understand the build process.
 
-the `build_toolchain.sh` script should download and install all the necessarry tools for building the project, but if it doesn't work on your platform you might be able to figure out what you need manually (again, i need to get on this).
+the `build_toolchain.sh` script should download and install all the necessary tools for building the project on Ubuntu, but if it doesn't work on your platform you might be able to figure out what you need manually (again, i need to get on this).
 
 alternatively you can download prebuilt binaries from the releases tab and run them under qemu-system-x86_64/qemu-system-i386. again, the binary should stand entirely on its own.
+
+### build with Docker
+
+alternatively-alternatively you can use Docker to build the image.
+
+prerequisites:
+- Docker
+- make*
+- qemu (system-x86_64/system-i386) to run the resulting image
+
+just run `make docker` and it should output files into `./bin/`. the first run will take a few minutes as it build the required dependencies, but subsequent runs only need to build the actual image thanks to Docker layer caching.
+as a \*very* rough guide, `docker system df` reports using ~6.5GB after a build (having pruned beforehand), but that will *not* grow significantly with subsequent reruns.
+
+additionally, the Dockerfile shows the exact steps and dependencies required on Ubuntu, so can serve as a rough guide on what tools/steps are required in other environments.
+
+\*technically make is optional - have a look at the Makefile's `docker` recipe to see what it does (it's just being used as a command runner).
